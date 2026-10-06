@@ -59,6 +59,17 @@ impl CoursesState {
     }
 }
 
+const PINNED: [&str; 4] = ["modules", "assignments", "announcements", "grades"];
+
+fn tab_sort_key(tab: &Tabs) -> (usize, i32) {
+    let rank = tab
+        .id
+        .as_deref()
+        .and_then(|id| PINNED.iter().position(|p| *p == id))
+        .unwrap_or(PINNED.len());
+    (rank, tab.position)
+}
+
 pub struct TabsState {
     pub tabs: Vec<Tabs>,
     pub selected: usize,
@@ -66,7 +77,8 @@ pub struct TabsState {
 }
 
 impl TabsState {
-    pub fn new(tabs: Vec<Tabs>) -> Self {
+    pub fn new(mut tabs: Vec<Tabs>) -> Self {
+        tabs.sort_by_key(tab_sort_key);
         Self { tabs, selected: 0, offset: 0 }
     }
 
