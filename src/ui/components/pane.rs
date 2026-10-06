@@ -1,5 +1,4 @@
 use ratatui::{prelude::*, widgets::{BorderType::Rounded, *}};
-
 use crate::ui::theme::BORDER_COLOR;
 
 pub fn pane(title: &str) -> Block<'_> {
