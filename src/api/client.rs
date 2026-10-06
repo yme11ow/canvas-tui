@@ -2,6 +2,8 @@ use reqwest::blocking::Client;
 use reqwest::header::LINK;
 use serde::de::DeserializeOwned;
 
+use crate::api::models::Tabs;
+
 use super::models::Course;
 
 pub struct CanvasClient {
@@ -15,7 +17,11 @@ impl CanvasClient {
         Self {
             // Canvas rejects requests without a User-Agent with a 403.
             http: Client::builder()
-                .user_agent(concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")))
+                .user_agent(concat!(
+                    env!("CARGO_PKG_NAME"),
+                    "/",
+                    env!("CARGO_PKG_VERSION")
+                ))
                 .build()
                 .expect("failed to build HTTP client"),
             base_url: base_url.into().trim_end_matches('/').to_string(),
@@ -24,11 +30,18 @@ impl CanvasClient {
     }
 
     pub fn from_env() -> Result<Self, std::env::VarError> {
-        Ok(Self::new(std::env::var("CANVAS_URL")?, std::env::var("CANVAS_TOKEN")?))
+        Ok(Self::new(
+            std::env::var("CANVAS_URL")?,
+            std::env::var("CANVAS_TOKEN")?,
+        ))
     }
 
     pub fn courses(&self) -> reqwest::Result<Vec<Course>> {
         self.get_paginated("/api/v1/courses?enrollment_state=active&per_page=100")
+    }
+
+    pub fn tabs(&self, course_id: u64) -> reqwest::Result<Vec<Tabs>> {
+        self.get_paginated(&format!("/api/v1/courses/{}/tabs", course_id))
     }
 
     /// Canvas paginates results and puts the next page's URL in the `Link` header.
@@ -59,7 +72,11 @@ impl CanvasClient {
 fn next_link(header: &str) -> Option<String> {
     header.split(',').find_map(|part| {
         let (url, rel) = part.split_once(';')?;
-        rel.contains(r#"rel="next""#)
-            .then(|| url.trim().trim_start_matches('<').trim_end_matches('>').to_string())
+        rel.contains(r#"rel="next""#).then(|| {
+            url.trim()
+                .trim_start_matches('<')
+                .trim_end_matches('>')
+                .to_string()
+        })
     })
 }

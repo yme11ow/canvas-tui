@@ -14,6 +14,6 @@
 
      List::new(items)
         .highlight_symbol(">")
-        .highlight_style(Style::default().fg(Color::Blue))
+        .highlight_style(Style::default().fg(Color::Cyan))
 }
 */

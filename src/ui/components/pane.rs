@@ -1,5 +1,8 @@
-use ratatui::{prelude::*, widgets::{BorderType::Rounded, *}};
 use crate::ui::theme::BORDER_COLOR;
+use ratatui::{
+    prelude::*,
+    widgets::{BorderType::Rounded, *},
+};
 
 pub fn pane(title: &str) -> Block<'_> {
     let border_color = BORDER_COLOR;
