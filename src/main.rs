@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             terminal.draw(|frame| {
                 app.courses.render(frame);
                 app.tabs.render(frame);
-        })?;
+            })?;
 
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {

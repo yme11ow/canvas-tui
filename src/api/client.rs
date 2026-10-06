@@ -15,7 +15,6 @@ pub struct CanvasClient {
 impl CanvasClient {
     pub fn new(base_url: impl Into<String>, token: impl Into<String>) -> Self {
         Self {
-            // Canvas rejects requests without a User-Agent with a 403.
             http: Client::builder()
                 .user_agent(concat!(
                     env!("CARGO_PKG_NAME"),

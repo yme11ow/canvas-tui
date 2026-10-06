@@ -6,7 +6,6 @@ use crate::{
     ui::views::courses::{CoursesState, TabsState},
 };
 
-
 pub struct App {
     pub client: CanvasClient,
     pub courses: CoursesState,
@@ -28,7 +27,14 @@ impl App {
     }
 
     fn load_tabs(&mut self) {
-        let Some(course) = self.courses.list.selected().and_then(|i| self.courses.courses.get(i)) else { return };
+        let Some(course) = self
+            .courses
+            .list
+            .selected()
+            .and_then(|i| self.courses.courses.get(i))
+        else {
+            return;
+        };
         let course_id = course.id;
 
         if !self.tab_cache.contains_key(&course_id) {
@@ -50,9 +56,14 @@ impl App {
         match key.code {
             KeyCode::Char('q') => self.should_quit = true,
             KeyCode::Char('r') => self.refresh(),
+            KeyCode::Char('[') | KeyCode::Char('h') | KeyCode::Char(']') | KeyCode::Char('l') => self.tabs.handle_key(key),
             _ => {
-                CoursesState::handle_key(&mut self.courses, key);
-                self.load_tabs();
+                let before = self.courses.list.selected();
+                self.courses.handle_key(key);
+                if self.courses.list.selected() != before {
+                    self.load_tabs();
+                }
+                
             }
         }
     }
