@@ -9,10 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut app = app::App::new(client)?;
     ratatui::run(|terminal| {
         loop {
-            terminal.draw(|frame| {
-                app.courses.render(frame);
-                app.tabs.render(frame);
-            })?;
+            terminal.draw(|frame| ui::views::courses::render(&mut app, frame))?;
 
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {

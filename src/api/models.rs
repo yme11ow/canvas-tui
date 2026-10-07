@@ -35,3 +35,22 @@ pub struct Module {
     pub publish_final_grade: Option<bool>,
     pub published: Option<bool>,
 }
+pub enum TabKind {
+    Modules,
+    Assignments,
+    Announcements,
+    Grades,
+    Other,
+}
+
+impl Tabs {
+    pub fn kind(&self) -> TabKind {
+        match self.id.as_deref() {
+            Some("modules") => TabKind::Modules,
+            Some("assignments") => TabKind::Assignments,
+            Some("announcements") => TabKind::Announcements,
+            Some("grades") => TabKind::Grades,
+            _ => TabKind::Other,
+        }
+    }
+}

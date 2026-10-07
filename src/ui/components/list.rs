@@ -1,5 +1,10 @@
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::{Frame, layout::Rect, style::{Color, Style}, widgets::{List, ListItem, ListState, Block}};
+use ratatui::{
+    Frame,
+    layout::Rect,
+    style::{Color, Style},
+    widgets::{Block, List, ListItem, ListState},
+};
 
 pub struct SelectList<T> {
     pub items: Vec<T>,
@@ -34,10 +39,16 @@ impl<T> SelectList<T> {
         next != i
     }
 
-    pub fn render<'a>(&mut self, frame: &mut Frame, area: Rect, block: Block<'a>,
-                      label: impl Fn(&T) -> &str) {
+    pub fn render<'a>(
+        &mut self,
+        frame: &mut Frame,
+        area: Rect,
+        block: Block<'a>,
+        label: impl Fn(&T) -> &str,
+    ) {
         let items: Vec<ListItem> = self.items.iter().map(|t| ListItem::new(label(t))).collect();
-        let list = List::new(items).block(block)
+        let list = List::new(items)
+            .block(block)
             .highlight_symbol("> ")
             .highlight_style(Style::default().fg(Color::Cyan));
         frame.render_stateful_widget(list, area, &mut self.state);

@@ -2,15 +2,18 @@ use crossterm::event::{KeyCode, KeyEvent};
 use std::collections::HashMap;
 
 use crate::{
-    api::{client::CanvasClient, models::Tabs},
-    ui::views::courses::{CoursesState, TabsState},
+    api::{
+        client::CanvasClient, models::{Course, Module, TabKind, Tabs},
+    }, ui::components::{list::SelectList, tabs::TabsState},
 };
 
 pub struct App {
     pub client: CanvasClient,
-    pub courses: CoursesState,
+    pub courses: SelectList<Course>,
     pub tabs: TabsState,
+    pub modules: SelectList<Module>,
     tab_cache: HashMap<u64, Vec<Tabs>>,
+    module_cache: HashMap<u64, Vec<Module>>,
     pub should_quit: bool,
 }
 
@@ -19,20 +22,17 @@ impl App {
         let courses = client.courses()?;
         Ok(Self {
             client,
-            courses: CoursesState::new(courses),
+            courses: SelectList::new(courses),
             tabs: TabsState::new(Vec::new()),
+            modules: SelectList::new(Vec::new()),
             tab_cache: HashMap::new(),
+            module_cache: HashMap::new(),
             should_quit: false,
         })
     }
 
     fn load_tabs(&mut self) {
-        let Some(course) = self
-            .courses
-            .list
-            .selected()
-            .and_then(|i| self.courses.courses.get(i))
-        else {
+        let Some(course) = self.courses.selected() else {
             return;
         };
         let course_id = course.id;
@@ -47,6 +47,32 @@ impl App {
         }
     }
 
+    fn load_content(&mut self) {
+        let Some(course) = self.courses.selected() else {
+            return;
+        };
+        let course_id = course.id;
+        let Some(tab) = self.tabs.selected() else {
+            return;
+        };
+        match tab.kind() {
+            TabKind::Modules => {
+                if !self.module_cache.contains_key(&course_id) {
+                    if let Ok(modules) = self.client.modules(course_id) {
+                        self.module_cache.insert(course_id, modules);
+                    }
+                }
+                if let Some(modules) = self.module_cache.get(&course_id) {
+                    self.modules = SelectList::new(modules.clone());
+                }
+            }
+            _ => {}
+        }
+        if tab.id.as_deref() == Some("modules") {
+            
+        }
+    }
+
     fn refresh(&mut self) {
         self.tab_cache.clear();
         self.load_tabs();
@@ -56,14 +82,21 @@ impl App {
         match key.code {
             KeyCode::Char('q') => self.should_quit = true,
             KeyCode::Char('r') => self.refresh(),
-            KeyCode::Char('[') | KeyCode::Char('h') | KeyCode::Char(']') | KeyCode::Char('l') => self.tabs.handle_key(key),
-            _ => {
-                let before = self.courses.list.selected();
-                self.courses.handle_key(key);
-                if self.courses.list.selected() != before {
-                    self.load_tabs();
+            KeyCode::Char('[')
+            | KeyCode::Char('h')
+            | KeyCode::Char(']')
+            | KeyCode::Char('l')
+            | KeyCode::Left
+            | KeyCode::Right => {
+                if self.tabs.handle_key(key) {
+                    self.load_content();
                 }
-                
+            }
+            _ => {
+                if self.courses.handle_key(key) {
+                    self.load_tabs();
+                    self.load_content();
+                }
             }
         }
     }

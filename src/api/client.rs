@@ -43,7 +43,7 @@ impl CanvasClient {
         self.get_paginated(&format!("/api/v1/courses/{}/tabs", course_id))
     }
 
-    pub fn modules(&self, course_id: u64) ->reqwest::Result<Vec<Module>> {
+    pub fn modules(&self, course_id: u64) -> reqwest::Result<Vec<Module>> {
         self.get_paginated(&format!("/api/v1/courses/{}/modules", course_id))
     }
 
