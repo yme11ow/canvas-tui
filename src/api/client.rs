@@ -2,7 +2,7 @@ use reqwest::blocking::Client;
 use reqwest::header::LINK;
 use serde::de::DeserializeOwned;
 
-use crate::api::models::{Module, Tabs};
+use crate::api::models::{Assignment, Module, Tabs};
 
 use super::models::Course;
 
@@ -45,6 +45,10 @@ impl CanvasClient {
 
     pub fn modules(&self, course_id: u64) -> reqwest::Result<Vec<Module>> {
         self.get_paginated(&format!("/api/v1/courses/{}/modules", course_id))
+    }
+
+    pub fn assignments(&self, course_id: u64) -> reqwest::Result<Vec<Assignment>> {
+        self.get_paginated(&format!("/api/v1/courses/{}/assignments", course_id))
     }
 
     /// Canvas paginates results and puts the next page's URL in the `Link` header.

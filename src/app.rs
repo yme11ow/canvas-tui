@@ -3,10 +3,8 @@ use std::collections::HashMap;
 
 use crate::{
     api::{
-        client::CanvasClient, models::{Course, Module, TabKind, Tabs},
-    },
-    keybinds::{Action, Keymap},
-    ui::components::{list::SelectList, tabs::TabsState},
+        client::CanvasClient, models::{Assignment, Course, Module, TabKind, Tabs},
+    }, keybinds::{Action, Keymap}, ui::components::{list::SelectList, tabs::TabsState},
 };
 
 pub struct App {
@@ -15,8 +13,10 @@ pub struct App {
     pub courses: SelectList<Course>,
     pub tabs: TabsState,
     pub modules: SelectList<Module>,
+    pub assignments: SelectList<Assignment>,
     tab_cache: HashMap<u64, Vec<Tabs>>,
     module_cache: HashMap<u64, Vec<Module>>,
+    assignment_cache: HashMap<u64, Vec<Assignment>>,
     pub should_quit: bool,
 }
 
@@ -29,8 +29,10 @@ impl App {
             courses: SelectList::new(courses),
             tabs: TabsState::new(Vec::new()),
             modules: SelectList::new(Vec::new()),
+            assignments: SelectList::new(Vec::new()),
             tab_cache: HashMap::new(),
             module_cache: HashMap::new(),
+            assignment_cache: HashMap::new(),
             should_quit: false,
         })
     }
@@ -70,6 +72,16 @@ impl App {
                     self.modules = SelectList::new(modules.clone());
                 }
             }
+            TabKind::Assignments => {
+                if !self.assignment_cache.contains_key(&course_id) {
+                    if let Ok(assignments) = self.client.assignments(course_id) {
+                        self.assignment_cache.insert(course_id, assignments);
+                    }
+                }
+                if let Some(assignments) = self.assignment_cache.get(&course_id) {
+                    self.assignments = SelectList::new(assignments.clone());
+                }
+            }
             _ => {}
         }
     }
@@ -77,6 +89,7 @@ impl App {
     fn refresh(&mut self) {
         self.tab_cache.clear();
         self.module_cache.clear();
+        self.assignment_cache.clear();
         self.load_tabs();
         self.load_content();
     }
@@ -118,6 +131,9 @@ impl App {
         match self.tabs.selected().map(|t| t.kind()) {
             Some(TabKind::Modules) => {
                 if down { self.modules.next(); } else { self.modules.prev(); }
+            }
+            Some(TabKind::Assignments) => {
+                if down { self.assignments.next(); } else { self.assignments.prev(); }
             }
             _ => {}
         }

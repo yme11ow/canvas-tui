@@ -24,6 +24,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                     m.name.as_deref().unwrap_or("(unnamed)")
                 });
             }
+            TabKind::Assignments => {
+                app.assignments.render(frame, below_tabs[1], Block::new(), |a| {
+                    a.name.as_deref().unwrap_or("(unnamed)")
+                });
+            }
             _ => {}
         }
     }
