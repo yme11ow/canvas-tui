@@ -1,5 +1,6 @@
 use crate::api::models::Tabs;
 use crate::ui::components::pane::pane;
+use crate::ui::theme::{HIGHLIGHT_COLOR, TEXT_COLOR};
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
@@ -12,8 +13,8 @@ where
 {
     widgets::Tabs::new(tabs)
         .block(pane)
-        .style(Color::White)
-        .highlight_style(Style::default().cyan().bold())
+        .style(TEXT_COLOR)
+        .highlight_style(Style::default().fg(HIGHLIGHT_COLOR).bold())
         .divider(symbols::DOT)
         .padding(" ", " ")
 }

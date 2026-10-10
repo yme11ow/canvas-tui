@@ -1,7 +1,8 @@
+use crate::ui::theme::HIGHLIGHT_COLOR;
 use ratatui::{
     Frame,
     layout::Rect,
-    style::{Color, Style},
+    style::Style,
     widgets::{Block, List, ListItem, ListState},
 };
 
@@ -51,7 +52,7 @@ impl<T> SelectList<T> {
         let list = List::new(items)
             .block(block)
             .highlight_symbol("> ")
-            .highlight_style(Style::default().fg(Color::Cyan));
+            .highlight_style(Style::default().fg(HIGHLIGHT_COLOR));
         frame.render_stateful_widget(list, area, &mut self.state);
     }
 }
