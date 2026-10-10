@@ -1,7 +1,6 @@
 use crate::api::models::Tabs;
 use crate::ui::components::pane::pane;
 use crate::ui::theme::{HIGHLIGHT_COLOR, TEXT_COLOR};
-use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
     widgets::{self, Block},
@@ -50,21 +49,22 @@ impl TabsState {
         self.tabs.get(self.selected)
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) -> bool {
+    pub fn step(&mut self, delta: isize) -> bool {
         let len = self.tabs.len();
         if len == 0 {
             return false;
         }
         let i = self.selected;
-        let next = match key.code {
-            KeyCode::Char('[') | KeyCode::Char('h') | KeyCode::Left => {
-                (self.selected + len - 1) % len
-            }
-            KeyCode::Char(']') | KeyCode::Char('l') | KeyCode::Right => (self.selected + 1) % len,
-            _ => return false,
-        };
-        self.selected = next;
-        next != i
+        self.selected = (i as isize + delta).rem_euclid(len as isize) as usize;
+        self.selected != i
+    }
+
+    pub fn next(&mut self) -> bool {
+        self.step(1)
+    }
+
+    pub fn prev(&mut self) -> bool {
+        self.step(-1)
     }
 
     pub fn render(&mut self, frame: &mut Frame, area: Rect) {

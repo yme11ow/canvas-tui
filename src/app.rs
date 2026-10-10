@@ -1,14 +1,17 @@
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use std::collections::HashMap;
 
 use crate::{
     api::{
         client::CanvasClient, models::{Course, Module, TabKind, Tabs},
-    }, ui::components::{list::SelectList, tabs::TabsState},
+    },
+    keybinds::{Action, Keymap},
+    ui::components::{list::SelectList, tabs::TabsState},
 };
 
 pub struct App {
     pub client: CanvasClient,
+    keymap: Keymap,
     pub courses: SelectList<Course>,
     pub tabs: TabsState,
     pub modules: SelectList<Module>,
@@ -18,10 +21,11 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(client: CanvasClient) -> reqwest::Result<Self> {
+    pub fn new(client: CanvasClient, keymap: Keymap) -> reqwest::Result<Self> {
         let courses = client.courses()?;
         Ok(Self {
             client,
+            keymap,
             courses: SelectList::new(courses),
             tabs: TabsState::new(Vec::new()),
             modules: SelectList::new(Vec::new()),
@@ -78,35 +82,27 @@ impl App {
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) {
-        match key.code {
-            KeyCode::Char('q') => self.should_quit = true,
-            KeyCode::Char('r') => self.refresh(),
-            KeyCode::Char('[')
-            | KeyCode::Char('h')
-            | KeyCode::Char(']')
-            | KeyCode::Char('l')
-            | KeyCode::Left
-            | KeyCode::Right => {
-                if self.tabs.handle_key(key) {
-                    self.load_content();
-                }
-            }
+        let Some(action) = self.keymap.get(key) else {
+            return;
+        };
+        match action {
+            Action::Quit => self.should_quit = true,
+            Action::Refresh => self.refresh(),
+            Action::NextTab => self.move_tabs(true),
+            Action::PrevTab => self.move_tabs(false),
             // left pane
-            KeyCode::Char('j') | KeyCode::Down => {
-                self.move_courses(true);
-            }
-            KeyCode::Char('k') |KeyCode::Up => {
-                self.move_courses(false);
-            }
-
+            Action::CourseDown => self.move_courses(true),
+            Action::CourseUp => self.move_courses(false),
             // right pane
-            KeyCode::Char('d') => {
-                self.move_content(true);
-            }
-            KeyCode::Char('u') => {
-                self.move_content(false);
-            }
-            _ => {}
+            Action::ContentDown => self.move_content(true),
+            Action::ContentUp => self.move_content(false),
+        }
+    }
+
+    pub fn move_tabs(&mut self, right: bool) {
+        let changed = if right { self.tabs.next() } else { self.tabs.prev() };
+        if changed {
+            self.load_content();
         }
     }
 

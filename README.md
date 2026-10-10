@@ -70,14 +70,39 @@ You can also export them in your shell instead. The app exits with an error at s
 
 ### Keybindings
 
-| Key              | Action                              |
-| ---------------- | ----------------------------------- |
-| `j` / `↓`        | Next course                         |
-| `k` / `↑`        | Previous course                     |
-| `l` / `]`        | Next tab                            |
-| `h` / `[`        | Previous tab                        |
-| `r`              | Refresh (re-fetch the current course's tabs) |
-| `q`              | Quit                                |
+| Key              | Action                              | Config name    |
+| ---------------- | ----------------------------------- | -------------- |
+| `j` / `↓`        | Next course                         | `course_down`  |
+| `k` / `↑`        | Previous course                     | `course_up`    |
+| `l` / `]` / `→`  | Next tab                            | `next_tab`     |
+| `h` / `[` / `←`  | Previous tab                        | `prev_tab`     |
+| `d`              | Move down in the right pane         | `content_down` |
+| `u`              | Move up in the right pane           | `content_up`   |
+| `r`              | Refresh (re-fetch the current course's tabs) | `refresh` |
+| `q`              | Quit                                | `quit`         |
+
+#### Custom keybindings
+
+Keybindings are set in `config.toml` in your config directory. canvas-tui creates this file on first run, with every setting commented out:
+
+- Linux: `~/.config/canvas-tui/config.toml`
+- macOS: `~/Library/Application Support/canvas-tui/config.toml`
+- Windows: `%APPDATA%\canvas-tui\config.toml`
+
+Under `[keybinds]`, uncomment or add the keys for each action you want to change, using the config names from the table above:
+
+```toml
+[keybinds]
+quit = ["q", "ctrl-c"]
+content_down = ["d", "ctrl-d"]
+content_up = ["u", "ctrl-u"]
+```
+
+Each action you list replaces that action's default keys. Actions you leave out keep their defaults.
+
+Keys are written as a single character (`j`, `G`, `[`) or a named key: `up`, `down`, `left`, `right`, `enter`, `esc`, `tab`, `backspace`, `delete`, `space`, `home`, `end`, `pageup`, `pagedown`, `f1`–`f12`. Add modifiers with `ctrl-`, `alt-` or `shift-`, for example `ctrl-d` or `shift-tab`.
+
+If the file has an unknown action or key, or gives the same key to two actions, canvas-tui prints an error and exits.
 
 ---
 
@@ -97,7 +122,9 @@ You need a `.env` file (see [Configuration](#configuration)) because the app fet
 ```
 src/
 ├── main.rs              # Entry point: loads .env, builds the client, runs the event loop
-├── app.rs               # App state, key handling, and the per-course tab cache
+├── app.rs               # App state, action handling, and the per-course caches
+├── config.rs            # Loads ~/.config/canvas-tui/config.toml
+├── keybinds.rs          # Action enum, default keybinds, key parsing, Keymap
 ├── api/
 │   ├── client.rs        # Blocking Canvas REST client (bearer auth + Link-header pagination)
 │   └── models.rs        # Serde models for Canvas API responses (Course, Tabs)
@@ -113,7 +140,17 @@ src/
 
 - **API client.** `CanvasClient` uses `reqwest`'s blocking client. Canvas paginates list endpoints and puts the next page in the `Link` header, so `get_paginated` follows `rel="next"` until it runs out of pages.
 - **State.** `App` holds the client and the UI state. When the selected course changes, `load_tabs` checks a `HashMap<course_id, Vec<Tabs>>` cache before calling the API. `r` clears the cache.
-- **Rendering.** Each view has a state struct with `handle_key` and `render` methods. The tab bar works out how many tabs fit in the pane's width and scrolls to keep the selected tab visible, showing `◀` / `▶` when more tabs are off-screen.
+- **Keybindings.** `Keymap` maps key presses to `Action`s, starting from `DEFAULTS` in `keybinds.rs` and applying any user overrides. `App::handle_key` matches on the `Action` only, so no code outside `keybinds.rs` checks raw keys.
+- **Rendering.** Each component has a state struct with movement methods (`next`/`prev`) and a `render` method. The tab bar works out how many tabs fit in the pane's width and scrolls to keep the selected tab visible, showing `◀` / `▶` when more tabs are off-screen.
+
+Debug builds (`cargo run`, `cargo build`) never write a starter `config.toml`, so development doesn't touch your real config. Use `cargo run --release` to test first-run behavior.
+
+### Adding a keybinding
+
+1. Add a variant to `Action` in `src/keybinds.rs`, plus its config name in the `Display` impl.
+2. Give it default keys in `DEFAULTS`.
+3. Handle it in `App::handle_key`. The compiler will flag the match until you do.
+4. Add it to the keybindings table in this README.
 
 ### Adding a Canvas endpoint
 
