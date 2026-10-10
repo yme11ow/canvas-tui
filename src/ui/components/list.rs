@@ -1,4 +1,3 @@
-use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     Frame,
     layout::Rect,
@@ -24,19 +23,21 @@ impl<T> SelectList<T> {
         self.state.selected().and_then(|i| self.items.get(i))
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) -> bool {
+    pub fn step(&mut self, delta: isize) -> bool {
         let len = self.items.len();
-        if len == 0 {
-            return false;
-        }
+        if len == 0 { return false; }
         let i = self.state.selected().unwrap_or(0);
-        let next = match key.code {
-            KeyCode::Char('j') | KeyCode::Down => (i + 1) % len,
-            KeyCode::Char('k') | KeyCode::Up => (i + len - 1) % len,
-            _ => return false,
-        };
+        let next = (i as isize + delta).rem_euclid(len as isize) as usize;
         self.state.select(Some(next));
         next != i
+    }
+
+    pub fn next(&mut self) -> bool {
+        self.step(1)
+    }
+
+    pub fn prev(&mut self) -> bool {
+        self.step(-1)
     }
 
     pub fn render<'a>(

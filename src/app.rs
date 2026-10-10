@@ -68,14 +68,13 @@ impl App {
             }
             _ => {}
         }
-        if tab.id.as_deref() == Some("modules") {
-            
-        }
     }
 
     fn refresh(&mut self) {
         self.tab_cache.clear();
+        self.module_cache.clear();
         self.load_tabs();
+        self.load_content();
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) {
@@ -92,12 +91,39 @@ impl App {
                     self.load_content();
                 }
             }
-            _ => {
-                if self.courses.handle_key(key) {
-                    self.load_tabs();
-                    self.load_content();
-                }
+            // left pane
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.move_courses(true);
             }
+            KeyCode::Char('k') |KeyCode::Up => {
+                self.move_courses(false);
+            }
+
+            // right pane
+            KeyCode::Char('d') => {
+                self.move_content(true);
+            }
+            KeyCode::Char('u') => {
+                self.move_content(false);
+            }
+            _ => {}
+        }
+    }
+
+    pub fn move_courses(&mut self, down: bool) {
+        let changed = if down { self.courses.next() } else { self.courses.prev() };
+        if changed {
+            self.load_tabs();
+            self.load_content();
+        }
+    }
+
+    pub fn move_content(&mut self, down: bool) {
+        match self.tabs.selected().map(|t| t.kind()) {
+            Some(TabKind::Modules) => {
+                if down { self.modules.next(); } else { self.modules.prev(); }
+            }
+            _ => {}
         }
     }
 }
