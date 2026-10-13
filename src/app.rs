@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{
     api::{
-        client::CanvasClient, models::{Assignment, Course, Module, TabKind, Tabs},
+        client::CanvasClient, models::{Announcement, Assignment, Course, Module, TabKind, Tabs},
     }, keybinds::{Action, Keymap}, ui::components::{list::SelectList, tabs::TabsState},
 };
 
@@ -14,9 +14,11 @@ pub struct App {
     pub tabs: TabsState,
     pub modules: SelectList<Module>,
     pub assignments: SelectList<Assignment>,
+    pub announcements: SelectList<Announcement>,
     tab_cache: HashMap<u64, Vec<Tabs>>,
     module_cache: HashMap<u64, Vec<Module>>,
     assignment_cache: HashMap<u64, Vec<Assignment>>,
+    announcement_cache: HashMap<u64, Vec<Announcement>>,
     pub should_quit: bool,
 }
 
@@ -30,9 +32,11 @@ impl App {
             tabs: TabsState::new(Vec::new()),
             modules: SelectList::new(Vec::new()),
             assignments: SelectList::new(Vec::new()),
+            announcements: SelectList::new(Vec::new()),
             tab_cache: HashMap::new(),
             module_cache: HashMap::new(),
             assignment_cache: HashMap::new(),
+            announcement_cache: HashMap::new(),
             should_quit: false,
         })
     }
@@ -82,6 +86,16 @@ impl App {
                     self.assignments = SelectList::new(assignments.clone());
                 }
             }
+            TabKind::Announcements => {
+                if !self.announcement_cache.contains_key(&course_id) {
+                    if let Ok(announcements) = self.client.announcements(course_id) {
+                        self.announcement_cache.insert(course_id, announcements);
+                    }
+                }
+                if let Some(announcements) = self.announcement_cache.get(&course_id) {
+                    self.announcements = SelectList::new(announcements.clone());
+                }
+            }
             _ => {}
         }
     }
@@ -90,6 +104,7 @@ impl App {
         self.tab_cache.clear();
         self.module_cache.clear();
         self.assignment_cache.clear();
+        self.announcement_cache.clear();
         self.load_tabs();
         self.load_content();
     }
@@ -134,6 +149,9 @@ impl App {
             }
             Some(TabKind::Assignments) => {
                 if down { self.assignments.next(); } else { self.assignments.prev(); }
+            }
+            Some(TabKind::Announcements) => {
+                if down { self.announcements.next(); } else { self.announcements.prev(); }
             }
             _ => {}
         }

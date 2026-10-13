@@ -135,6 +135,15 @@ pub struct Assignment {
     //pub workflow_state: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct Announcement {
+    //pub id: u64,
+    pub title: Option<String>,
+    //pub message: Option<String>,
+    //pub posted_at: Option<String>,
+    //pub context_code: Option<String>,
+}
+
 pub enum TabKind {
     Modules,
     Assignments,

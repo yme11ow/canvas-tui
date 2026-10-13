@@ -29,6 +29,9 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                     a.name.as_deref().unwrap_or("(unnamed)")
                 });
             }
+            TabKind::Announcements => {
+                app.announcements.render(frame, below_tabs[1], Block::new(),|a| a.title.as_deref().unwrap_or("(unnamed)"));
+            }
             _ => {}
         }
     }
