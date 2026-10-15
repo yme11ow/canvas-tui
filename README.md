@@ -177,9 +177,23 @@ cargo clippy
 
 - [x] List active courses
 - [x] Show course navigation tabs
-- [ ] 
-- [ ] 
-- [ ] 
+- [x] List modules in the modules tab
+- [x] List assignments in the assignments tab
+- [x] List announcements in the announcements tab
+- [ ] Show grades table in the grades tab
+- [ ] Show course home information in the home tab
+- [ ] List discussions in the discussions tab
+- [ ] Deal with other types of course tabs
+- [ ] Cache saves to disk to improve load times on startup
+- [ ] Better refresh functionality
+- [ ] Handle opening content in external browser window
+- [ ] Be able to open modules and view content inside
+- [ ] Be able to open assignments and view content inside, as well as start/submit from the terminal
+- [ ] Be able to use "What-If?" Grade calculations
+- [ ] Be able to view and respond to discussions
+- [ ] Separate "Messages" view to be able to view and respond to Canvas messages
+- [ ] Separate "Grades" view showing overall GPA and All Class grades, with What-If functionality
+- [ ] Separate "Calendar" view with a calendar along with upcoming important dates
 
 ---
 
